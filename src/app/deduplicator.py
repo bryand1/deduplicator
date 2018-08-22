@@ -75,3 +75,11 @@ class Deduplicator:
             if self.groups[group_id]:
                 print("")
         print("")
+
+    def export(self):
+        return {
+            'headlines': self.headlines,
+            '_headlines': self._headlines,
+            'parents': self.parents,
+            'groups': self.groups
+        }
