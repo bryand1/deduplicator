@@ -7,7 +7,7 @@ from app import util
 class Deduplicator:
 
     logger = util.get_logger("deduplicator.Deduplicator")
-    threshold = 0.45
+    threshold = 0.50
 
     def __init__(self):
         self.sm = SequenceMatcher()
@@ -15,7 +15,7 @@ class Deduplicator:
         self.headlines = dict()
         self._headlines = dict()
         self.parents = dict()
-        self.groups = set()
+        self.groups = dict()
 
     def accept(self, _id: str, headline: str) -> str:
         self.headlines[_id] = headline
@@ -26,7 +26,7 @@ class Deduplicator:
         if len(self.groups) == 0:
             self.logger.debug("[%s] %s - first item", _id, headline)
             self.parents[_id] = _id
-            self.groups.add(_id)
+            self.groups[_id] = []
             return _id
 
         matches = []
@@ -36,13 +36,13 @@ class Deduplicator:
             self.sm.set_seqs(a, b)
             ratio = self.sm.ratio()
             self.logger.debug("[%s] %s <-> [%s] %s ==> %.2f", _id, a, group_id, b, ratio)
-            if ratio > self.threshold:
+            if ratio >= self.threshold:
                 matches.append((ratio, group_id))
 
         if not matches:
             self.logger.debug("[%s] %s - no matches found", _id, headline)
             self.parents[_id] = _id
-            self.groups.add(_id)
+            self.groups[_id] = []
             return _id
 
         matches.sort(key=lambda x: x[0])
@@ -50,4 +50,17 @@ class Deduplicator:
         b = self._headlines[group_id]
         self.logger.debug("[%s] %s <-> [%s] %s ==> %.2f was the high score", _id, a, group_id, b, highest_ratio)
         self.parents[_id] = group_id
+        self.groups[group_id].append(_id)
         return group_id
+
+    def print_tree(self):
+        print("")
+        for group_id in self.groups:
+            print("[%s] %s" % (group_id, self.headlines[group_id]))
+            if self.groups[group_id]:
+                print(" |")
+            for _id in self.groups[group_id]:
+                print(" |-- [%s] %s" % (_id, self.headlines[_id]))
+            if self.groups[group_id]:
+                print("")
+        print("")
