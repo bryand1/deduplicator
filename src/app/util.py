@@ -1,6 +1,7 @@
 import logging
 from sys import stdout
 from time import gmtime
+from typing import Iterable
 
 from app import config
 
@@ -16,3 +17,7 @@ def get_logger(name: str) -> logging.Logger:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
+
+
+def lowercase(iterable: Iterable[str]) -> Iterable[str]:
+    return type(iterable)(map(lambda x: x.lower(), iterable))

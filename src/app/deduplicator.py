@@ -1,6 +1,6 @@
 from difflib import SequenceMatcher
 
-from app.tokenizer import Tokenizer
+from app.nlp import NER, Tokenizer
 from app import util
 
 
@@ -8,10 +8,12 @@ class Deduplicator:
 
     logger = util.get_logger("deduplicator.Deduplicator")
     threshold = 0.50
+    boost = 0.05
 
     def __init__(self):
         self.sm = SequenceMatcher()
         self.tokenizer = Tokenizer()
+        self.ner = NER()
         self.headlines = dict()
         self._headlines = dict()
         self.parents = dict()
@@ -31,11 +33,19 @@ class Deduplicator:
 
         matches = []
         a = _headline
+        doc1 = self.ner.doc(headline)
+        ents1 = util.lowercase(self.ner.entities(doc1))
         for group_id in self.groups:
             b = self._headlines[group_id]
             self.sm.set_seqs(a, b)
             ratio = self.sm.ratio()
-            self.logger.debug("[%s] %s <-> [%s] %s ==> %.2f", _id, a, group_id, b, ratio)
+            # Check if there are any named entities in common
+            doc2 = self.ner.doc(self.headlines[group_id])
+            ents2 = util.lowercase(self.ner.entities(doc2))
+            ncommon = len(set(ents1) & set(ents2))
+            boost = ncommon * self.boost
+            ratio += boost
+            self.logger.debug("[%s] %s <-> [%s] %s ==> %.2f (+%.2f)", _id, a, group_id, b, ratio, boost)
             if ratio >= self.threshold:
                 matches.append((ratio, group_id))
 
@@ -53,14 +63,15 @@ class Deduplicator:
         self.groups[group_id].append(_id)
         return group_id
 
-    def print_tree(self):
+    def print_tree(self, original=True):
+        headlines = self.headlines if original else self._headlines
         print("")
         for group_id in self.groups:
-            print("[%s] %s" % (group_id, self.headlines[group_id]))
+            print("[%s] %s" % (group_id, headlines[group_id]))
             if self.groups[group_id]:
                 print(" |")
             for _id in self.groups[group_id]:
-                print(" |-- [%s] %s" % (_id, self.headlines[_id]))
+                print(" |-- [%s] %s" % (_id, headlines[_id]))
             if self.groups[group_id]:
                 print("")
         print("")

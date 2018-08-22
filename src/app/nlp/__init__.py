@@ -1,5 +1,6 @@
 from typing import List
 
+from .ner import NER
 from .stopwords import stopwords
 
 
