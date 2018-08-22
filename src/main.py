@@ -10,7 +10,6 @@ usage: python main.py
 usage: python main.py /path/to/text/file
 """
 import pickle
-from random import randint
 import sys
 
 import app
@@ -20,11 +19,12 @@ if __name__ == '__main__':
     dedupe = app.Deduplicator()
 
     if len(sys.argv) == 1:
+        _id = 1
         while True:
-            _id = str(randint(1, 10000000))
             headline = input("headline: ")
-            dedupe.accept(_id, headline)
+            dedupe.accept(str(_id), headline)
             dedupe.print_tree()
+            _id += 1
     else:
         filepath = sys.argv[1]
         lines = open(filepath).readlines()
