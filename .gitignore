@@ -1,0 +1,5 @@
+*.py[oc]
+.*
+!.gitignore
+venv
+__pycache__
