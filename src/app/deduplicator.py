@@ -8,7 +8,7 @@ class Deduplicator:
 
     logger = util.get_logger("deduplicator.Deduplicator")
     threshold = 0.50
-    boost = 0.05
+    boost = 0.10
 
     def __init__(self):
         self.sm = SequenceMatcher()
