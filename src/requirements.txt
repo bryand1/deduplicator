@@ -15,7 +15,7 @@ numpy==1.15.1
 plac==0.9.6
 pluggy==0.7.1
 preshed==1.0.1
-py==1.5.4
+py==1.10.0
 pytest==3.7.2
 regex==2017.4.5
 requests==2.19.1
